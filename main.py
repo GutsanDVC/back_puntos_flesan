@@ -5,11 +5,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.logger import setup_logging
 from app.infrastructure.db import create_tables
-from app.interfaces.api import users_router, health_router
+from app.interfaces.api import users_router, health_router, beneficios_router
 
 
 @asynccontextmanager
@@ -50,9 +51,13 @@ app.add_middleware(
     allowed_hosts=["*"]  # En producción, especificar hosts permitidos
 )
 
+# Configurar archivos estáticos
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Registrar routers
 app.include_router(health_router)
 app.include_router(users_router, prefix=settings.API_V1_PREFIX)
+app.include_router(beneficios_router, prefix=settings.API_V1_PREFIX)
 
 # Endpoint raíz
 @app.get("/")

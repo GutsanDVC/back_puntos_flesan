@@ -49,8 +49,15 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency para FastAPI - obtiene sesión de base de datos"""
-    async with get_db_session() as session:
-        yield session
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception as e:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
 
 
 async def create_tables():

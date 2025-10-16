@@ -1,12 +1,16 @@
-from .routers import users_router, health_router
-from .schemas import UserCreateRequest, UserResponse, ErrorResponse
-from .dependencies import get_user_repository
+from .routers import users_router, health_router, beneficios_router
+from .schemas import UserCreateRequest, UserResponse, ErrorResponse, BeneficioCreateRequest, BeneficioResponse
+from .dependencies import get_user_repository, get_beneficio_repository
 
 __all__ = [
     "users_router",
-    "health_router", 
+    "health_router",
+    "beneficios_router",
     "UserCreateRequest",
     "UserResponse",
     "ErrorResponse",
-    "get_user_repository"
+    "BeneficioCreateRequest",
+    "BeneficioResponse",
+    "get_user_repository",
+    "get_beneficio_repository"
 ]

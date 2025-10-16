@@ -9,6 +9,7 @@ from app.core.config import settings
 from app.core.exceptions import AuthenticationError, AuthorizationError
 from app.core.security import CurrentUser, Role, get_permissions_for_roles
 from app.infrastructure.auth.jwks_client import jwt_validator
+from app.infrastructure.auth.dev_auth import get_dev_user
 
 security = HTTPBearer(auto_error=False)
 
@@ -24,6 +25,10 @@ async def get_current_user(
     token: Optional[str] = Depends(get_token_from_cookie)
 ) -> CurrentUser:
     """Obtiene el usuario actual desde el token JWT"""
+    
+    # 🧪 MODO DESARROLLO: Usar usuario mock
+    if settings.ENVIRONMENT == "development":
+        return get_dev_user()
     
     if not token:
         raise HTTPException(
@@ -105,6 +110,10 @@ def require_roles(*required_roles: Role):
 
 def require_admin(current_user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
     """Dependency para requerir rol de administrador"""
+    # 🧪 MODO DESARROLLO: El usuario mock ya tiene permisos de admin
+    if settings.ENVIRONMENT == "development":
+        return current_user
+    
     if Role.ADMIN not in current_user.roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -115,6 +124,10 @@ def require_admin(current_user: CurrentUser = Depends(get_current_user)) -> Curr
 
 def require_manager_or_admin(current_user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
     """Dependency para requerir rol de manager o admin"""
+    # 🧪 MODO DESARROLLO: El usuario mock ya tiene permisos de manager y admin
+    if settings.ENVIRONMENT == "development":
+        return current_user
+    
     if not any(role in current_user.roles for role in [Role.ADMIN, Role.MANAGER]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

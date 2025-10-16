@@ -1,6 +1,6 @@
 from .session import Base, get_db, get_db_session, create_tables, drop_tables
-from .models import UserModel
-from .repositories import SQLAlchemyUserRepository
+from .models import UserModel, BeneficioModel
+from .repositories import SQLAlchemyUserRepository, BeneficioRepository
 
 __all__ = [
     "Base",
@@ -9,5 +9,7 @@ __all__ = [
     "create_tables",
     "drop_tables",
     "UserModel",
-    "SQLAlchemyUserRepository"
+    "BeneficioModel",
+    "SQLAlchemyUserRepository",
+    "BeneficioRepository"
 ]

@@ -18,7 +18,16 @@ from app.application.users import (
     EmailServicePort,
     AuditServicePort
 )
-from app.infrastructure.db import get_db, SQLAlchemyUserRepository
+from app.application.beneficios import (
+    CreateBeneficioCommand,
+    UpdateBeneficioCommand,
+    DeactivateBeneficioCommand,
+    GetBeneficioQuery,
+    ListBeneficiosQuery,
+    SearchBeneficiosQuery,
+    BeneficioRepositoryPort
+)
+from app.infrastructure.db import get_db, SQLAlchemyUserRepository, BeneficioRepository
 from app.infrastructure.external import MockEmailGateway, MockAuditGateway
 
 
@@ -105,3 +114,55 @@ async def get_search_users_query(
 ) -> SearchUsersQuery:
     """Dependency para obtener query de búsqueda de usuarios"""
     return SearchUsersQuery(user_repository)
+
+
+# Repositorios para Beneficios
+async def get_beneficio_repository(
+    session: AsyncSession = Depends(get_db)
+) -> BeneficioRepositoryPort:
+    """Dependency para obtener repositorio de beneficios"""
+    return BeneficioRepository(session)
+
+
+# Comandos para Beneficios
+async def get_create_beneficio_command(
+    beneficio_repository: BeneficioRepositoryPort = Depends(get_beneficio_repository)
+) -> CreateBeneficioCommand:
+    """Dependency para obtener comando de crear beneficio"""
+    return CreateBeneficioCommand(beneficio_repository)
+
+
+async def get_update_beneficio_command(
+    beneficio_repository: BeneficioRepositoryPort = Depends(get_beneficio_repository)
+) -> UpdateBeneficioCommand:
+    """Dependency para obtener comando de actualizar beneficio"""
+    return UpdateBeneficioCommand(beneficio_repository)
+
+
+async def get_deactivate_beneficio_command(
+    beneficio_repository: BeneficioRepositoryPort = Depends(get_beneficio_repository)
+) -> DeactivateBeneficioCommand:
+    """Dependency para obtener comando de desactivar beneficio"""
+    return DeactivateBeneficioCommand(beneficio_repository)
+
+
+# Queries para Beneficios
+async def get_beneficio_query(
+    beneficio_repository: BeneficioRepositoryPort = Depends(get_beneficio_repository)
+) -> GetBeneficioQuery:
+    """Dependency para obtener query de beneficio"""
+    return GetBeneficioQuery(beneficio_repository)
+
+
+async def get_list_beneficios_query(
+    beneficio_repository: BeneficioRepositoryPort = Depends(get_beneficio_repository)
+) -> ListBeneficiosQuery:
+    """Dependency para obtener query de lista de beneficios"""
+    return ListBeneficiosQuery(beneficio_repository)
+
+
+async def get_search_beneficios_query(
+    beneficio_repository: BeneficioRepositoryPort = Depends(get_beneficio_repository)
+) -> SearchBeneficiosQuery:
+    """Dependency para obtener query de búsqueda de beneficios"""
+    return SearchBeneficiosQuery(beneficio_repository)

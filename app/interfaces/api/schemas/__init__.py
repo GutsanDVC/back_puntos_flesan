@@ -7,6 +7,13 @@ from .user_schemas import (
     ErrorResponse,
     HealthResponse
 )
+from .beneficio_schemas import (
+    BeneficioCreateRequest,
+    BeneficioUpdateRequest,
+    BeneficioResponse,
+    BeneficioListResponse,
+    BeneficioSummaryResponse
+)
 
 __all__ = [
     "UserCreateRequest",
@@ -15,5 +22,10 @@ __all__ = [
     "UserResponse",
     "UserListResponse",
     "ErrorResponse",
-    "HealthResponse"
+    "HealthResponse",
+    "BeneficioCreateRequest",
+    "BeneficioUpdateRequest",
+    "BeneficioResponse",
+    "BeneficioListResponse",
+    "BeneficioSummaryResponse"
 ]

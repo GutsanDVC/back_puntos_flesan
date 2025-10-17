@@ -7,7 +7,7 @@ from fastapi.security import HTTPBearer
 
 from app.core.config import settings
 from app.core.exceptions import AuthenticationError, AuthorizationError
-from app.core.security import CurrentUser, Role, get_permissions_for_roles
+from app.core.security import CurrentUser, Role, Permission, get_permissions_for_roles
 from app.infrastructure.auth.jwks_client import jwt_validator
 from app.infrastructure.auth.dev_auth import get_dev_user
 
@@ -58,10 +58,18 @@ async def get_current_user(
         # Obtener permisos basados en roles
         permissions = get_permissions_for_roles(roles)
         
+        # Por ahora usar el primer rol como rol principal
+        # TODO: Actualizar cuando se implemente la lógica de usuario único
+        primary_role = roles[0] if roles else Role.USER
+        
         return CurrentUser(
-            user_id=user_id,
+            id=user_id,
+            user_id=None,  # TODO: Obtener del datawarehouse
             email=email,
-            roles=roles,
+            first_name="Usuario",  # TODO: Obtener del token o BD
+            last_name="JWT",  # TODO: Obtener del token o BD
+            puntos_disponibles=0,  # TODO: Obtener de la BD
+            rol=primary_role,
             permissions=permissions,
             is_active=True
         )
@@ -98,7 +106,7 @@ def require_roles(*required_roles: Role):
     """Dependency factory para requerir roles específicos"""
     
     def check_roles(current_user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
-        if not any(role in current_user.roles for role in required_roles):
+        if current_user.rol not in required_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Se requiere uno de los roles: {[r.value for r in required_roles]}"
@@ -114,7 +122,7 @@ def require_admin(current_user: CurrentUser = Depends(get_current_user)) -> Curr
     if settings.ENVIRONMENT == "development":
         return current_user
     
-    if Role.ADMIN not in current_user.roles:
+    if current_user.rol != Role.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Se requiere rol de administrador"
@@ -128,12 +136,43 @@ def require_manager_or_admin(current_user: CurrentUser = Depends(get_current_use
     if settings.ENVIRONMENT == "development":
         return current_user
     
-    if not any(role in current_user.roles for role in [Role.ADMIN, Role.MANAGER]):
+    if current_user.rol not in [Role.ADMIN, Role.MANAGER]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Se requiere rol de manager o administrador"
         )
     return current_user
+
+
+def require_leader_or_above(current_user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
+    """Dependency para requerir rol de leader o superior"""
+    # 🧪 MODO DESARROLLO: El usuario mock ya tiene permisos
+    if settings.ENVIRONMENT == "development":
+        return current_user
+    
+    if current_user.rol not in [Role.ADMIN, Role.MANAGER, Role.USER_LEADER]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Se requiere rol de leader, manager o administrador"
+        )
+    return current_user
+
+
+def require_permission(permission: Permission):
+    """Factory para crear dependency que requiere un permiso específico"""
+    def check_permission(current_user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
+        # 🧪 MODO DESARROLLO: El usuario mock ya tiene todos los permisos
+        if settings.ENVIRONMENT == "development":
+            return current_user
+        
+        if not current_user.has_permission(permission):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Se requiere el permiso: {permission.value}"
+            )
+        return current_user
+    
+    return check_permission
 
 
 async def validate_session_token(token: str) -> bool:

@@ -14,29 +14,55 @@ class Role(str, Enum):
     """Roles disponibles en el sistema"""
     ADMIN = "admin"
     USER = "user"
+    USER_LEADER = "user_leader"
     MANAGER = "manager"
-    VIEWER = "viewer"
 
 
 class Permission(str, Enum):
     """Permisos disponibles en el sistema"""
-    READ = "read"
-    WRITE = "write"
-    DELETE = "delete"
-    ADMIN = "admin"
+    # Permisos de puntos
+    REDEEM_POINTS = "redeem_points"
+    VIEW_OWN_POINTS = "view_own_points"
+    VIEW_OWN_HISTORY = "view_own_history"
+    VIEW_TEAM_POINTS = "view_team_points"
+    VIEW_TEAM_HISTORY = "view_team_history"
+    GIVE_EXTRA_POINTS = "give_extra_points"
+    
+    # Permisos de beneficios
+    VIEW_BENEFITS = "view_benefits"
+    MANAGE_BENEFITS = "manage_benefits"
+    
+    # Permisos de usuarios
+    CREATE_USERS = "create_users"
+    CREATE_MANAGERS = "create_managers"
+    
+    # Permisos de empresa
+    VIEW_COMPANY_HISTORY = "view_company_history"
+    
+    # Permisos de configuración
+    SYSTEM_CONFIG = "system_config"
 
 
 class CurrentUser(BaseModel):
     """Modelo para el usuario actual autenticado"""
-    user_id: str
+    id: str  # UUID del usuario
+    user_id: Optional[int] = None  # ID del datawarehouse
     email: str
-    roles: List[Role]
+    first_name: str
+    last_name: str
+    puntos_disponibles: int = 0
+    rol: Role  # Un solo rol
     permissions: Set[Permission]
     is_active: bool = True
     
+    @property
+    def full_name(self) -> str:
+        """Nombre completo del usuario"""
+        return f"{self.first_name} {self.last_name}"
+    
     def has_role(self, role: Role) -> bool:
         """Verifica si el usuario tiene un rol específico"""
-        return role in self.roles
+        return self.rol == role
     
     def has_permission(self, permission: Permission) -> bool:
         """Verifica si el usuario tiene un permiso específico"""
@@ -44,19 +70,71 @@ class CurrentUser(BaseModel):
     
     def has_any_role(self, roles: List[Role]) -> bool:
         """Verifica si el usuario tiene alguno de los roles especificados"""
-        return any(role in self.roles for role in roles)
+        return self.rol in roles
     
     def has_all_permissions(self, permissions: List[Permission]) -> bool:
         """Verifica si el usuario tiene todos los permisos especificados"""
         return all(permission in self.permissions for permission in permissions)
+    
+    def can_manage_user(self, target_user_role: Role) -> bool:
+        """Verifica si puede gestionar un usuario con el rol especificado"""
+        if self.rol == Role.ADMIN:
+            return True  # Admin puede gestionar todos
+        elif self.rol == Role.MANAGER:
+            return target_user_role in [Role.USER, Role.USER_LEADER]  # Manager puede gestionar USER y USER_LEADER
+        elif self.rol == Role.USER_LEADER:
+            return target_user_role == Role.USER  # Leader solo puede ver USER
+        return False
 
 
 # Mapeo de roles a permisos
 ROLE_PERMISSIONS = {
-    Role.ADMIN: {Permission.READ, Permission.WRITE, Permission.DELETE, Permission.ADMIN},
-    Role.MANAGER: {Permission.READ, Permission.WRITE},
-    Role.USER: {Permission.READ, Permission.WRITE},
-    Role.VIEWER: {Permission.READ},
+    Role.USER: {
+        Permission.REDEEM_POINTS,
+        Permission.VIEW_OWN_POINTS,
+        Permission.VIEW_OWN_HISTORY,
+        Permission.VIEW_BENEFITS
+    },
+    Role.USER_LEADER: {
+        # Permisos de USER +
+        Permission.REDEEM_POINTS,
+        Permission.VIEW_OWN_POINTS,
+        Permission.VIEW_OWN_HISTORY,
+        Permission.VIEW_BENEFITS,
+        # Permisos adicionales de LEADER
+        Permission.VIEW_TEAM_POINTS,
+        Permission.VIEW_TEAM_HISTORY
+    },
+    Role.MANAGER: {
+        # Permisos de USER_LEADER +
+        Permission.REDEEM_POINTS,
+        Permission.VIEW_OWN_POINTS,
+        Permission.VIEW_OWN_HISTORY,
+        Permission.VIEW_BENEFITS,
+        Permission.VIEW_TEAM_POINTS,
+        Permission.VIEW_TEAM_HISTORY,
+        # Permisos adicionales de MANAGER
+        Permission.VIEW_COMPANY_HISTORY,
+        Permission.MANAGE_BENEFITS,
+        Permission.GIVE_EXTRA_POINTS,
+        Permission.CREATE_USERS
+    },
+    Role.ADMIN: {
+        # Todos los permisos anteriores +
+        Permission.REDEEM_POINTS,
+        Permission.VIEW_OWN_POINTS,
+        Permission.VIEW_OWN_HISTORY,
+        Permission.VIEW_BENEFITS,
+        Permission.VIEW_TEAM_POINTS,
+        Permission.VIEW_TEAM_HISTORY,
+        Permission.VIEW_COMPANY_HISTORY,
+        Permission.MANAGE_BENEFITS,
+        Permission.GIVE_EXTRA_POINTS,
+        Permission.CREATE_USERS,
+        # Permisos exclusivos de ADMIN
+        Permission.CREATE_MANAGERS,
+        Permission.SYSTEM_CONFIG
+    }
 }
 
 

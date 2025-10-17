@@ -7,12 +7,20 @@ from app.core.security import CurrentUser, Role, Permission
 
 def get_dev_user() -> CurrentUser:
     """Crea un usuario de desarrollo con permisos de administrador"""
+    from app.core.security import get_permissions_for_roles
+    
+    admin_permissions = get_permissions_for_roles([Role.ADMIN])
+    
     return CurrentUser(
-        user_id="12345678-1234-5678-9012-123456789012",
+        id="12345678-1234-5678-9012-123456789012",
+        user_id=999999,  # ID ficticio del datawarehouse
         email="dev@flesan.com",
-        roles=[Role.ADMIN, Role.MANAGER, Role.USER],
-        is_active=True,
-        permissions={Permission.ADMIN, Permission.READ, Permission.WRITE, Permission.DELETE}
+        first_name="Usuario",
+        last_name="Desarrollo",
+        puntos_disponibles=1000,  # Puntos para testing
+        rol=Role.ADMIN,
+        permissions=admin_permissions,
+        is_active=True
     )
 
 

@@ -11,6 +11,8 @@ from app.core.config import settings
 from app.core.logger import setup_logging
 from app.infrastructure.db import create_tables
 from app.interfaces.api import users_router, health_router, beneficios_router
+from app.interfaces.api.routers.datawarehouse import router as datawarehouse_router
+from app.interfaces.api.routers.colaboradores import router as colaboradores_router
 
 
 @asynccontextmanager
@@ -58,6 +60,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(health_router)
 app.include_router(users_router, prefix=settings.API_V1_PREFIX)
 app.include_router(beneficios_router, prefix=settings.API_V1_PREFIX)
+app.include_router(datawarehouse_router, prefix=settings.API_V1_PREFIX)
+app.include_router(colaboradores_router, prefix=settings.API_V1_PREFIX)
 
 # Endpoint raíz
 @app.get("/")

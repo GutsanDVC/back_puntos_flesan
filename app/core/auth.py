@@ -40,6 +40,12 @@ async def get_current_user(
             permissions=ROLE_PERMISSIONS[Role.ADMIN],
             is_active=True
         )
+    logger.debug(
+            {"Token": request.cookies.get("user_token"),
+            "Secret": settings.SECRET_KEY,
+            "Algorithm": settings.ALGORITHM
+            }
+        )
     # Validación de token en producción o cuando se proporciona
     if credentials is None:
         logger.warning(

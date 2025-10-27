@@ -53,6 +53,12 @@ async def get_current_user(
         )
     try:
         token = request.cookies.get("user_token")
+        if not token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="No se encontró cookie de autenticación 'user_token'",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,

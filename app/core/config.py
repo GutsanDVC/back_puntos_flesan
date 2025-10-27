@@ -50,6 +50,7 @@ class Settings(BaseSettings):
     AUTH_JWKS_URL: str
     AUTH_AUDIENCE: str
     AUTH_ISSUER: str
+    ALGORITHM: str = "HS256"
     
     # --------------------------------------------------
     # Cookies
@@ -88,7 +89,9 @@ class Settings(BaseSettings):
     
     model_config = SettingsConfigDict(
         env_file=".env",
-        case_sensitive=True
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore"  # Ignorar variables extra del entorno
     )
 
 

@@ -88,3 +88,15 @@ class NotFoundError(BaseAppException):
         details: Optional[Dict[str, Any]] = None
     ):
         super().__init__(message, error_code, details)
+
+
+class ConflictError(BaseAppException):
+    """Excepción para conflictos (duplicados, violaciones de unicidad)"""
+    
+    def __init__(
+        self,
+        message: str = "Conflicto con recurso existente",
+        error_code: str = "APP-ERR-007",
+        details: Optional[Dict[str, Any]] = None
+    ):
+        super().__init__(message, error_code, details)

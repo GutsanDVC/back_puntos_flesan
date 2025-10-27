@@ -1,0 +1,70 @@
+"""Esquemas Pydantic para validación de beneficios"""
+
+from datetime import datetime
+from typing import List, Optional
+from uuid import UUID
+
+from pydantic import BaseModel, Field
+
+
+class BeneficioCreateRequest(BaseModel):
+    """Esquema para crear beneficio"""
+    beneficio: str = Field(..., min_length=1, max_length=200)
+    detalle: str = Field(..., min_length=1)
+    regla1: str = Field(..., min_length=1, max_length=200)
+    regla2: str = Field(..., min_length=1, max_length=200)
+    valor: int = Field(..., ge=0, description="Valor en puntos")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "beneficio": "Día Cambio de Casa",
+                "detalle": "Un día libre para tu cambio de casa",
+                "regla1": "1 Vez por año",
+                "regla2": "1 Vez por mes",
+                "valor": 350
+            }
+        }
+
+
+class BeneficioUpdateRequest(BaseModel):
+    """Esquema para actualizar beneficio"""
+    imagen: Optional[str] = Field(None, max_length=500)
+    beneficio: Optional[str] = Field(None, min_length=1, max_length=200)
+    detalle: Optional[str] = Field(None, min_length=1)
+    regla1: Optional[str] = Field(None, min_length=1, max_length=200)
+    regla2: Optional[str] = Field(None, min_length=1, max_length=200)
+    valor: Optional[int] = Field(None, ge=0)
+
+
+class BeneficioResponse(BaseModel):
+    """Esquema de respuesta para beneficio"""
+    id: UUID
+    imagen: str
+    beneficio: str
+    detalle: str
+    regla1: str
+    regla2: str
+    valor: int
+    is_active: bool
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class BeneficioListResponse(BaseModel):
+    """Esquema de respuesta para lista de beneficios"""
+    beneficios: List[BeneficioResponse]
+    total: int
+    page: int
+    size: int
+    total_pages: int
+
+
+class BeneficioSummaryResponse(BaseModel):
+    """Esquema de respuesta para resumen de beneficios"""
+    total_beneficios: int
+    beneficios_activos: int
+    valor_total: int

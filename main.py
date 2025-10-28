@@ -15,6 +15,19 @@ from app.core.config import settings
 from app.core.logger import setup_logging
 from app.core.database import create_tables
 
+import sys
+from pathlib import Path
+# BASE_DIR: /var/www/fastapi/api_puntos_flesan/back_puntos_flesan
+BASE_DIR = Path(__file__).resolve().parent
+# PROJECT_ROOT: /var/www/fastapi/api_puntos_flesan
+PROJECT_ROOT = BASE_DIR.parent
+
+# Agrega ambos niveles al PYTHONPATH si no están
+for path in (BASE_DIR, PROJECT_ROOT):
+    path_str = str(path)
+    if path_str not in sys.path:
+        sys.path.append(path_str)
+
 # Routers (arquitectura por capas)
 from app.api.routers import (
     user_router,

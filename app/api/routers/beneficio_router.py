@@ -15,7 +15,7 @@ from app.core.database import get_db
 from app.core.exceptions import BaseAppException, NotFoundError, ConflictError, ValidationError
 from app.core.security import CurrentUser
 from app.core.utils.file_utils import file_manager
-from app.core.auth import get_current_user, require_admin
+from app.core.auth import get_current_user, require_admin, require_manage_benefits
 from app.repositories.beneficio_repository import BeneficioRepository
 from app.services.beneficio_service import BeneficioService
 
@@ -43,7 +43,7 @@ async def create_beneficio(
     regla1: str = Form(..., description="Primera regla"),
     regla2: str = Form(..., description="Segunda regla"),
     valor: int = Form(..., ge=0, description="Valor en puntos"),
-    current_user: CurrentUser = Depends(require_admin),
+    current_user: CurrentUser = Depends(require_manage_benefits),
     service: BeneficioService = Depends(get_beneficio_service)
 ) -> BeneficioResponse:
     """Crea un nuevo beneficio con imagen"""
@@ -122,7 +122,7 @@ async def update_beneficio(
     regla1: Optional[str] = Form(None),
     regla2: Optional[str] = Form(None),
     valor: Optional[int] = Form(None, ge=0),
-    current_user: CurrentUser = Depends(require_admin),
+    current_user: CurrentUser = Depends(require_manage_benefits),
     service: BeneficioService = Depends(get_beneficio_service)
 ) -> BeneficioResponse:
     """Actualiza un beneficio"""
@@ -164,7 +164,7 @@ async def update_beneficio(
 async def update_beneficio_imagen(
     beneficio_id: UUID,
     imagen: UploadFile = File(...),
-    current_user: CurrentUser = Depends(require_admin),
+    current_user: CurrentUser = Depends(require_manage_benefits),
     service: BeneficioService = Depends(get_beneficio_service)
 ) -> BeneficioResponse:
     """Actualiza solo la imagen de un beneficio"""
@@ -208,12 +208,35 @@ async def update_beneficio_imagen(
 )
 async def deactivate_beneficio(
     beneficio_id: UUID,
-    current_user: CurrentUser = Depends(require_admin),
+    current_user: CurrentUser = Depends(require_manage_benefits),
     service: BeneficioService = Depends(get_beneficio_service)
 ) -> BeneficioResponse:
     """Desactiva un beneficio"""
     try:
         result = await service.deactivate_beneficio(beneficio_id)
+        return BeneficioResponse(**result)
+        
+    except NotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": e.message, "error_code": e.error_code}
+        )
+
+
+@router.put(
+    "/{beneficio_id}/activar",
+    response_model=BeneficioResponse,
+    summary="Activar beneficio",
+    description="Activa un beneficio. Requiere permisos de administrador."
+)
+async def activate_beneficio(
+    beneficio_id: UUID,
+    current_user: CurrentUser = Depends(require_manage_benefits),
+    service: BeneficioService = Depends(get_beneficio_service)
+) -> BeneficioResponse:
+    """Activa un beneficio"""
+    try:
+        result = await service.activate_beneficio(beneficio_id)
         return BeneficioResponse(**result)
         
     except NotFoundError as e:
@@ -233,7 +256,6 @@ async def list_beneficios(
     page: int = Query(1, ge=1, description="Número de página"),
     size: int = Query(10, ge=1, le=100, description="Tamaño de página"),
     is_active: Optional[bool] = Query(None, description="Filtrar por estado"),
-    current_user: CurrentUser = Depends(get_current_user),
     service: BeneficioService = Depends(get_beneficio_service)
 ) -> BeneficioListResponse:
     """Lista beneficios con paginación y filtros"""

@@ -1,6 +1,6 @@
 """Funciones de autenticación y autorización"""
 
-from typing import Optional
+from typing import Optional, Callable
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
@@ -47,16 +47,16 @@ async def get_current_user(
             }
         )
     # Validación de token en producción o cuando se proporciona
-    if credentials is None:
-        logger.warning(
-            "Authentication failed: missing bearer credentials",
-            extra={"extra_data": {"path": request.url.path if request else None, "reason": "missing_credentials"}}
-        )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No se proporcionó token de autenticación",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    # if credentials is None:
+    #     logger.warning(
+    #         "Authentication failed: missing bearer credentials",
+    #         extra={"extra_data": {"path": request.url.path if request else None, "reason": "missing_credentials"}}
+    #     )
+    #     raise HTTPException(
+    #         status_code=status.HTTP_401_UNAUTHORIZED,
+    #         detail="No se proporcionó token de autenticación",
+    #         headers={"WWW-Authenticate": "Bearer"},
+    #     )
     if request is None:
         logger.error(
             "Authentication failed: request object not provided",
@@ -178,3 +178,35 @@ async def require_active_user(
             detail="Usuario inactivo"
         )
     return current_user
+
+
+# === Autorización basada en permisos (no por rol) ===
+def require_permission(permission: str) -> Callable[..., CurrentUser]:
+    """Crea una dependencia que exige un permiso específico.
+    
+    - Verifica que el permiso esté presente en `current_user.permissions`.
+    - Lanza 403 si no lo tiene.
+    """
+    async def _dependency(current_user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
+        if permission not in current_user.permissions:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Permiso requerido: {permission}"
+            )
+        return current_user
+    return _dependency
+
+
+# Dependencias concretas por permiso solicitado
+require_redeem_points = require_permission("redeem_points")
+require_view_own_points = require_permission("view_own_points")
+require_view_own_history = require_permission("view_own_history")
+require_view_benefits = require_permission("view_benefits")
+require_view_team_points = require_permission("view_team_points")
+require_view_team_history = require_permission("view_team_history")
+require_view_company_history = require_permission("view_company_history")
+require_manage_benefits = require_permission("manage_benefits")
+require_give_extra_points = require_permission("give_extra_points")
+require_create_users = require_permission("create_users")
+require_create_managers = require_permission("create_managers")
+require_system_config = require_permission("system_config")

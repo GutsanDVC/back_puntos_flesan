@@ -28,7 +28,7 @@ def get_beneficio_service(db: AsyncSession = Depends(get_db)) -> BeneficioServic
     repository = BeneficioRepository(db)
     return BeneficioService(repository)
 
-
+#current_user: CurrentUser = Depends(require_manage_benefits),
 @router.post(
     "/",
     response_model=BeneficioResponse,
@@ -43,7 +43,7 @@ async def create_beneficio(
     regla1: str = Form(..., description="Primera regla"),
     regla2: str = Form(..., description="Segunda regla"),
     valor: int = Form(..., ge=0, description="Valor en puntos"),
-    current_user: CurrentUser = Depends(require_manage_benefits),
+    
     service: BeneficioService = Depends(get_beneficio_service)
 ) -> BeneficioResponse:
     """Crea un nuevo beneficio con imagen"""

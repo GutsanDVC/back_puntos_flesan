@@ -17,7 +17,7 @@ class CanjeRepository:
     async def create(
         self,
         user_id: int,
-        beneficio_id: int,
+        beneficio_id: UUID,
         puntos_canjeados: int,
         fecha_canje: datetime,
         fecha_uso: datetime,
@@ -26,7 +26,7 @@ class CanjeRepository:
         """Crea un nuevo registro de canje usando SQL RAW"""
         canje_id = uuid4()
         created_at = datetime.utcnow()
-        
+        print(user_id)
         query = text("""
             INSERT INTO puntos_flesan.historial_canjes 
             (id, user_id, beneficio_id, puntos_canjeados, fecha_canje, fecha_uso, 
@@ -43,7 +43,7 @@ class CanjeRepository:
             {
                 "id": str(canje_id),
                 "user_id": user_id,
-                "beneficio_id": beneficio_id,
+                "beneficio_id": str(beneficio_id),
                 "puntos_canjeados": puntos_canjeados,
                 "fecha_canje": fecha_canje,
                 "fecha_uso": fecha_uso,
@@ -128,7 +128,7 @@ class CanjeRepository:
         skip: int = 0,
         limit: int = 10,
         user_id: Optional[int] = None,
-        beneficio_id: Optional[int] = None,
+        beneficio_id: Optional[UUID] = None,
         estado: Optional[str] = None
     ) -> List[dict]:
         """Lista canjes con filtros usando SQL RAW"""
@@ -141,7 +141,7 @@ class CanjeRepository:
         
         if beneficio_id:
             where_conditions.append("beneficio_id = :beneficio_id")
-            params["beneficio_id"] = beneficio_id
+            params["beneficio_id"] = str(beneficio_id)
         
         if estado:
             where_conditions.append("estado = :estado")
@@ -166,7 +166,7 @@ class CanjeRepository:
     async def count_canjes(
         self,
         user_id: Optional[int] = None,
-        beneficio_id: Optional[int] = None,
+        beneficio_id: Optional[UUID] = None,
         estado: Optional[str] = None
     ) -> int:
         """Cuenta canjes con filtros usando SQL RAW"""
@@ -235,7 +235,7 @@ class CanjeRepository:
         return {
             "id": UUID(row.id) if isinstance(row.id, str) else row.id,
             "user_id": row.user_id,
-            "beneficio_id": row.beneficio_id,
+            "beneficio_id": UUID(row.beneficio_id) if isinstance(row.beneficio_id, str) else row.beneficio_id,
             "puntos_canjeados": row.puntos_canjeados,
             "fecha_canje": row.fecha_canje,
             "fecha_uso": row.fecha_uso,

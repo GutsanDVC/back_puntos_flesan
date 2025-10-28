@@ -2,10 +2,14 @@
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
 
 from app.core.config import settings
 from app.core.logger import setup_logging
@@ -65,6 +69,47 @@ app.add_middleware(
 # Configurar archivos estáticos
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Manejo personalizado de errores de validación
+CUSTOM_FIELD_MESSAGES = {
+    "beneficio_id": "Debes seleccionar un beneficio antes de realizar el canje.",
+    "user_id": "Debes indicar el usuario que realizará el canje.",
+    "puntos_utilizar": "Debes especificar la cantidad de puntos a utilizar en el canje.",
+}
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc: RequestValidationError):
+    """Personaliza el mensaje de error cuando faltan campos obligatorios"""
+    errores = []
+
+    for error in exc.errors():
+        loc = [str(item) for item in error.get("loc", []) if item not in {"body", "__root__"}]
+        field = loc[-1] if loc else ""
+
+        if error.get("type") == "missing" and field:
+            message = CUSTOM_FIELD_MESSAGES.get(
+                field,
+                f"El campo '{field}' es obligatorio."
+            )
+        else:
+            message = error.get("msg", "Error de validación en la solicitud.")
+
+        errores.append(
+            {
+                "field": field or "",
+                "message": message,
+                "detail": error
+            }
+        )
+
+    return JSONResponse(
+        status_code=422,
+        content={
+            "message": "La solicitud contiene datos inválidos.",
+            "errors": errores
+        }
+    )
+
 # Registrar routers
 app.include_router(health_router)
 app.include_router(user_router, prefix=settings.API_V1_PREFIX)
@@ -75,13 +120,12 @@ app.include_router(canje_router, prefix=settings.API_V1_PREFIX)
 # app.include_router(colaboradores_router, prefix=settings.API_V1_PREFIX)
 
 # Endpoint raíz
-@app.get("/")
-async def read_root():
-    print("🚀 CORS_ALLOWED_ORIGINS:", settings.CORS_ALLOWED_ORIGINS)
-    """Endpoint raíz de la API"""
-    return {
-        "message": "FastAPI Backend Template funcionando correctamente",
-        "version": settings.VERSION,
-        "docs": "/docs",
-        "health": "/health/"
-    }
+
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "title": app.title, "version": app.version},
+    )

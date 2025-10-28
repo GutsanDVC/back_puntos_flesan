@@ -1,6 +1,6 @@
 """Servicio de negocio para canjes de puntos - Consolida lógica de aplicación"""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from math import ceil
 from typing import List, Optional
 from uuid import UUID
@@ -24,6 +24,14 @@ class CanjeService:
         self.user_repository = user_repository
         self.beneficio_repository = beneficio_repository
     
+    def _to_naive_utc(self, dt: datetime) -> datetime:
+        """Normaliza un datetime a UTC sin tzinfo (naive) para almacenamiento consistente"""
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            return dt
+        return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    
     async def _obtener_dias_vacaciones_acumulados(self, user_id: int) -> int:
         """
         Obtiene los días de vacaciones acumulados del usuario desde el datawarehouse
@@ -40,7 +48,7 @@ class CanjeService:
     async def crear_canje(
         self,
         user_id: int,
-        beneficio_id: int,
+        beneficio_id: UUID,
         puntos_utilizar: int,
         fecha_canje: datetime,
         fecha_uso: datetime,
@@ -90,8 +98,12 @@ class CanjeService:
                 f"al valor del beneficio ({valor_beneficio})"
             )
         
+        # Normalizar fechas a UTC naive para evitar conflictos aware/naive
+        fecha_canje_norm = self._to_naive_utc(fecha_canje)
+        fecha_uso_norm = self._to_naive_utc(fecha_uso)
+        
         # 5. Validar que la fecha de uso sea posterior a la fecha de canje
-        if fecha_uso <= fecha_canje:
+        if fecha_uso_norm <= fecha_canje_norm:
             raise ValidationError(
                 "La fecha de uso debe ser posterior a la fecha de canje"
             )
@@ -109,15 +121,15 @@ class CanjeService:
             user_id=user_id,
             beneficio_id=beneficio_id,
             puntos_canjeados=puntos_utilizar,
-            fecha_canje=fecha_canje,
-            fecha_uso=fecha_uso,
+            fecha_canje=fecha_canje_norm,
+            fecha_uso=fecha_uso_norm,
             observaciones=observaciones
         )
         
         # 8. Descontar los puntos al usuario
         nuevos_puntos = puntos_disponibles - puntos_utilizar
         await self.user_repository.update(
-            user_id=UUID(user["id"]) if isinstance(user["id"], str) else user["id"],
+            user_id=user_id,
             puntos=nuevos_puntos
         )
         
@@ -189,7 +201,7 @@ class CanjeService:
         page: int = 1,
         size: int = 10,
         user_id: Optional[int] = None,
-        beneficio_id: Optional[int] = None,
+        beneficio_id: Optional[UUID] = None,
         estado: Optional[str] = None
     ) -> dict:
         """

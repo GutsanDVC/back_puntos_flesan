@@ -170,7 +170,7 @@ async def list_canjes(
     page: int = Query(1, ge=1, description="Número de página"),
     size: int = Query(10, ge=1, le=100, description="Tamaño de página"),
     user_id: Optional[int] = Query(None, description="Filtrar por user_id"),
-    beneficio_id: Optional[int] = Query(None, description="Filtrar por beneficio_id"),
+    beneficio_id: Optional[UUID] = Query(None, description="Filtrar por beneficio_id (UUID)"),
     estado: Optional[str] = Query(None, description="Filtrar por estado"),
     current_user: CurrentUser = Depends(get_current_user),
     service: CanjeService = Depends(get_canje_service)

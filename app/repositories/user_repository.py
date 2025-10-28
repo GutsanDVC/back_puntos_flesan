@@ -63,7 +63,7 @@ class UserRepository:
         row = result.fetchone()
         return self._row_to_dict(row)
     
-    async def get_by_id(self, user_id: UUID) -> Optional[dict]:
+    async def get_by_id(self, user_id: int) -> Optional[dict]:
         """Obtiene un usuario por ID usando SQL RAW"""
         query = text("""
             SELECT id, user_id, email, first_name, last_name, puntos_disponibles, rol, permisos,
@@ -106,7 +106,7 @@ class UserRepository:
     
     async def update(
         self,
-        user_id: UUID,
+        user_id: int,
         email: Optional[str] = None,
         first_name: Optional[str] = None,
         last_name: Optional[str] = None,
@@ -117,6 +117,7 @@ class UserRepository:
         """Actualiza un usuario usando SQL RAW"""
         # Obtener usuario actual
         user = await self.get_by_id(user_id)
+        print(user)
         if not user:
             raise ValueError(f"Usuario con ID {user_id} no encontrado")
         
@@ -127,12 +128,12 @@ class UserRepository:
         updated_puntos = puntos if puntos is not None else user["puntos"]
         updated_is_active = is_active if is_active is not None else user["is_active"]
         
-        if roles:
-            updated_roles_json = json.dumps([role.value for role in roles])
-            updated_rol = roles[0].value
-        else:
-            updated_roles_json = user["permisos"]
-            updated_rol = user["rol"]
+        # if roles:
+        #     updated_roles_json = json.dumps([role.value for role in roles])
+        #     updated_rol = roles[0].value
+        # else:
+        #     updated_roles_json = user["permisos"]
+        #     updated_rol = user["rol"]
         
         query = text("""
             UPDATE puntos_flesan.users
@@ -140,11 +141,9 @@ class UserRepository:
                 first_name = :first_name,
                 last_name = :last_name,
                 puntos_disponibles = :puntos,
-                rol = :rol,
-                permisos = :permisos,
                 is_active = :is_active,
                 updated_at = :updated_at
-            WHERE id = :user_id
+            WHERE user_id = :user_id
             RETURNING id, user_id, email, first_name, last_name, puntos_disponibles, rol, permisos,
                       is_active, created_at, updated_at, last_login
         """)
@@ -152,13 +151,11 @@ class UserRepository:
         result = await self.session.execute(
             query,
             {
-                "user_id": str(user_id),
+                "user_id": user_id,
                 "email": updated_email,
                 "first_name": updated_first_name,
                 "last_name": updated_last_name,
                 "puntos": updated_puntos,
-                "rol": updated_rol,
-                "permisos": updated_roles_json,
                 "is_active": updated_is_active,
                 "updated_at": datetime.utcnow()
             }
@@ -167,7 +164,7 @@ class UserRepository:
         row = result.fetchone()
         return self._row_to_dict(row)
     
-    async def delete(self, user_id: UUID) -> bool:
+    async def delete(self, user_id: int) -> bool:
         """Elimina un usuario (soft delete) usando SQL RAW"""
         query = text("""
             UPDATE puntos_flesan.users
@@ -180,7 +177,7 @@ class UserRepository:
         result = await self.session.execute(
             query,
             {
-                "user_id": str(user_id),
+                "user_id": user_id,
                 "updated_at": datetime.utcnow()
             }
         )

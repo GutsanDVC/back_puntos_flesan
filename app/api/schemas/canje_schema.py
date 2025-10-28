@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, field_validator
 class CanjeCreateRequest(BaseModel):
     """Esquema para crear un canje de puntos"""
     user_id: int = Field(..., gt=0, description="ID del usuario del datawarehouse")
-    beneficio_id: int = Field(..., gt=0, description="ID del beneficio a canjear")
+    beneficio_id: UUID = Field(..., description="ID del beneficio a canjear (UUID)")
     puntos_utilizar: int = Field(..., gt=0, description="Cantidad de puntos a utilizar")
     fecha_canje: datetime = Field(..., description="Fecha en que se realiza el canje")
     fecha_uso: datetime = Field(..., description="Fecha programada para usar el beneficio")
@@ -28,7 +28,7 @@ class CanjeCreateRequest(BaseModel):
         json_schema_extra = {
             "example": {
                 "user_id": 6070,
-                "beneficio_id": 1,
+                "beneficio_id": "8f3d0a8c-9a5b-4c2e-9b1e-1a2b3c4d5e6f",
                 "puntos_utilizar": 100,
                 "fecha_canje": "2025-01-24T10:00:00",
                 "fecha_uso": "2025-02-01T10:00:00",
@@ -41,7 +41,7 @@ class CanjeResponse(BaseModel):
     """Esquema de respuesta para un canje"""
     id: UUID
     user_id: int
-    beneficio_id: int
+    beneficio_id: UUID
     puntos_canjeados: int
     fecha_canje: datetime
     fecha_uso: datetime

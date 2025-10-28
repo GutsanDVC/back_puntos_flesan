@@ -23,6 +23,7 @@ mypy = ">=1.6.0"
 black = ">=23.9.0"
 structlog = ">=23.2.0"
 python-dotenv = ">=1.0.0"
+jinja2 = "*"
 
 [dev-packages]
 

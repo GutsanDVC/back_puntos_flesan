@@ -247,13 +247,6 @@ async def search_users(
 ) -> UserListResponse:
     """Busca usuarios por email"""
     try:
-        logger.debug(
-            {"Query": q,
-            "Page": page,
-            "Current User": current_user,
-            "request": request,
-            "Size": size}
-        )
         result = await service.search_users(
             query=q,
             page=page,

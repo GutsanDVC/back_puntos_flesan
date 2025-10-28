@@ -242,7 +242,7 @@ async def search_users(
     q: str = Query(..., min_length=2, description="Término de búsqueda"),
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
-    current_user: CurrentUser = Depends(get_current_user),
+    # current_user: CurrentUser = Depends(get_current_user),
     service: UserService = Depends(get_user_service)
 ) -> UserListResponse:
     """Busca usuarios por email"""

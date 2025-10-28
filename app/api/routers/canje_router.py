@@ -56,7 +56,7 @@ def get_canje_service(db: AsyncSession = Depends(get_db)) -> CanjeService:
 )
 async def crear_canje(
     request: CanjeCreateRequest,
-    current_user: CurrentUser = Depends(get_current_user),
+    # current_user: CurrentUser = Depends(get_current_user),
     service: CanjeService = Depends(get_canje_service)
 ) -> CanjeResponse:
     """

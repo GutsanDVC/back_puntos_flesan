@@ -65,7 +65,7 @@ class UserService:
         
         return user
     
-    async def get_user_by_id(self, user_id: UUID) -> dict:
+    async def get_user_by_id(self, user_id: int) -> dict:
         """Obtiene un usuario por ID"""
         user = await self.repository.get_by_id(user_id)
         print(user)

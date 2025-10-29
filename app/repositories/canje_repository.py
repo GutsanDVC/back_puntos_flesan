@@ -21,6 +21,7 @@ class CanjeRepository:
         puntos_canjeados: int,
         fecha_canje: datetime,
         fecha_uso: datetime,
+        jornada: str,
         observaciones: Optional[str] = None
     ) -> dict:
         """Crea un nuevo registro de canje usando SQL RAW"""
@@ -29,12 +30,12 @@ class CanjeRepository:
         print(user_id)
         query = text("""
             INSERT INTO puntos_flesan.historial_canjes 
-            (id, user_id, beneficio_id, puntos_canjeados, fecha_canje, fecha_uso, 
+            (id, user_id, beneficio_id, puntos_canjeados, fecha_canje, fecha_uso, jornada,
              estado, observaciones, created_at, updated_at)
             VALUES 
-            (:id, :user_id, :beneficio_id, :puntos_canjeados, :fecha_canje, :fecha_uso,
+            (:id, :user_id, :beneficio_id, :puntos_canjeados, :fecha_canje, :fecha_uso, :jornada,
              :estado, :observaciones, :created_at, :updated_at)
-            RETURNING id, user_id, beneficio_id, puntos_canjeados, fecha_canje, fecha_uso,
+            RETURNING id, user_id, beneficio_id, puntos_canjeados, fecha_canje, fecha_uso, jornada,
                       estado, observaciones, created_at, updated_at
         """)
         
@@ -47,6 +48,7 @@ class CanjeRepository:
                 "puntos_canjeados": puntos_canjeados,
                 "fecha_canje": fecha_canje,
                 "fecha_uso": fecha_uso,
+                "jornada": jornada,
                 "estado": "ACTIVO",
                 "observaciones": observaciones,
                 "created_at": created_at,
@@ -60,7 +62,7 @@ class CanjeRepository:
     async def get_by_id(self, canje_id: UUID) -> Optional[dict]:
         """Obtiene un canje por ID usando SQL RAW"""
         query = text("""
-            SELECT id, user_id, beneficio_id, puntos_canjeados, fecha_canje, fecha_uso,
+            SELECT id, user_id, beneficio_id, puntos_canjeados, fecha_canje, fecha_uso, jornada,
                    estado, observaciones, created_at, updated_at
             FROM puntos_flesan.historial_canjes
             WHERE id = :canje_id
@@ -89,7 +91,7 @@ class CanjeRepository:
         where_clause = "WHERE " + " AND ".join(where_conditions)
         
         query = text(f"""
-            SELECT id, user_id, beneficio_id, puntos_canjeados, fecha_canje, fecha_uso,
+            SELECT id, user_id, beneficio_id, puntos_canjeados, fecha_canje, fecha_uso, jornada,
                    estado, observaciones, created_at, updated_at
             FROM puntos_flesan.historial_canjes
             {where_clause}
@@ -210,7 +212,7 @@ class CanjeRepository:
                 observaciones = COALESCE(:observaciones, observaciones),
                 updated_at = :updated_at
             WHERE id = :canje_id
-            RETURNING id, user_id, beneficio_id, puntos_canjeados, fecha_canje, fecha_uso,
+            RETURNING id, user_id, beneficio_id, puntos_canjeados, fecha_canje, fecha_uso, jornada,
                       estado, observaciones, created_at, updated_at
         """)
         
@@ -239,6 +241,7 @@ class CanjeRepository:
             "puntos_canjeados": row.puntos_canjeados,
             "fecha_canje": row.fecha_canje,
             "fecha_uso": row.fecha_uso,
+            "jornada": row.jornada,
             "estado": row.estado,
             "observaciones": row.observaciones,
             "created_at": row.created_at,

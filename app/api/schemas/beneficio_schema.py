@@ -12,6 +12,7 @@ class BeneficioCreateRequest(BaseModel):
     beneficio: str = Field(..., min_length=1, max_length=200)
     detalle: str = Field(..., min_length=1)
     valor: int = Field(..., ge=0, description="Valor en puntos")
+    requiresJourney: bool = Field(..., description="Indica si el beneficio requiere jornada específica")
 
     class Config:
         json_schema_extra = {
@@ -29,6 +30,7 @@ class BeneficioUpdateRequest(BaseModel):
     beneficio: Optional[str] = Field(None, min_length=1, max_length=200)
     detalle: Optional[str] = Field(None, min_length=1)
     valor: Optional[int] = Field(None, ge=0)
+    requiresJourney: Optional[bool] = Field(None, description="Indica si el beneficio requiere jornada específica")
 
 
 class BeneficioResponse(BaseModel):
@@ -38,6 +40,7 @@ class BeneficioResponse(BaseModel):
     beneficio: str
     detalle: str
     valor: int
+    requiresJourney: bool
     is_active: bool
     created_at: datetime
     updated_at: Optional[datetime] = None

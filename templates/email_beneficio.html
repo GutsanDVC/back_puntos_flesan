@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notificación de Canje de Beneficio</title>
+</head>
+<body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color:#f7f7f7; color:#333;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f7f7f7; padding:20px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff; border-radius:8px; overflow:hidden;">
+          
+          <!-- Header -->
+          <tr>
+            <td align="center" style="background-color:#E92828; padding:20px;">
+              <h1 style="color:#ffffff; margin:0; font-size:22px;">🔔 Notificación de Canje de Beneficio</h1>
+            </td>
+          </tr>
+
+          <!-- Contenido principal -->
+          <tr>
+            <td style="padding:25px;">
+              <p style="font-size:16px; margin-bottom:20px;">
+                Estimado/a <strong>{{nombre_colaborador}}</strong>,
+              </p>
+              <p style="font-size:15px; line-height:1.6; margin-bottom:20px;">
+                Te confirmamos que se ha registrado correctamente el siguiente canje:
+              </p>
+
+              <!-- Bloque de Beneficio -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+                <tr>
+                  <td width="120" valign="top">
+                    <img src="{{imagen_beneficio}}" alt="Imagen del beneficio" width="100" style="border-radius:8px; display:block;">
+                  </td>
+                  <td valign="top" style="padding-left:15px;">
+                    <h2 style="margin:0 0 5px 0; color:#2C2C2C;">{{nombre_beneficio}}</h2>
+                    <p style="margin:0; color:#555;">{{detalle_beneficio}}</p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Detalle del canje -->
+              <table width="100%" cellpadding="8" cellspacing="0" border="0" style="border:1px solid #ddd; border-radius:6px;">
+                <tr style="background-color:#f5f5f5;">
+                  <td><strong>Puntos utilizados:</strong></td>
+                  <td style="color:#E92828; text-align:right;"><strong>{{puntos_utilizados}}</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Puntos restantes:</strong></td>
+                  <td style="color:#27ae60; text-align:right;"><strong>{{puntos_restantes}}</strong></td>
+                </tr>
+                <tr style="background-color:#f5f5f5;">
+                  <td><strong>Fecha del canje:</strong></td>
+                  <td style="text-align:right;">{{fecha_canje}}</td>
+                </tr>
+                <tr>
+                  <td><strong>Fecha para usar el beneficio:</strong></td>
+                  <td style="text-align:right;">{{fecha_uso}}</td>
+                </tr>
+                {% if jornada %}
+                <tr style="background-color:#f5f5f5;">
+                  <td><strong>Jornada:</strong></td>
+                  <td style="text-align:right;">{{jornada}}</td>
+                </tr>
+                {% endif %}
+                {% if comentarios %}
+                <tr>
+                  <td><strong>Comentarios:</strong></td>
+                  <td style="text-align:right;">{{comentarios}}</td>
+                </tr>
+                {% endif %}
+              </table>
+
+              <p style="font-size:14px; margin-top:25px; line-height:1.5; color:#555;">
+                Recuerda revisar los <a href="#" style="color:#E92828; text-decoration:none;">términos y condiciones</a> del beneficio.  
+                Si tienes alguna duda, puedes comunicarte con el área de Recursos Humanos.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="background-color:#2C2C2C; padding:20px;">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Flesan_logo.png" alt="Logo Flesan" width="120" style="margin-bottom:10px;">
+              <p style="color:#bbb; font-size:12px; margin:0;">
+                © {{anio_actual}} Grupo Flesan - Programa de Beneficios Internos  
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

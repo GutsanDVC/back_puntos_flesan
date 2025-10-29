@@ -86,7 +86,17 @@ class Settings(BaseSettings):
     SERVER_HOST: str = "127.0.0.1"
     SERVER_PORT: int = 8001
     WORKERS: int = 4
-    
+
+
+     # Configuración Gmail SMTP
+    SMTP_SERVER: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str
+    SMTP_PASSWORD: str
+
+
+    EMAIL_SENDER_NAME: str = "Notificaciones Flesan"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

@@ -20,7 +20,8 @@ class BeneficioService:
         beneficio: str,
         detalle: str,
         valor: int,
-        imagen: str
+        imagen: str,
+        requiresJourney: bool
     ) -> dict:
         """
         Crea un nuevo beneficio con validaciones de negocio
@@ -48,7 +49,8 @@ class BeneficioService:
             beneficio=beneficio.strip(),
             detalle=detalle.strip(),
             valor=valor,
-            imagen=imagen
+            imagen=imagen,
+            requiresJourney=requiresJourney
         )
     
     async def get_beneficio_by_id(self, beneficio_id: UUID) -> dict:
@@ -64,7 +66,8 @@ class BeneficioService:
         imagen: Optional[str] = None,
         beneficio: Optional[str] = None,
         detalle: Optional[str] = None,
-        valor: Optional[int] = None
+        valor: Optional[int] = None,
+        requiresJourney: Optional[bool] = None
     ) -> dict:
         """
         Actualiza un beneficio con validaciones
@@ -105,7 +108,8 @@ class BeneficioService:
             imagen=imagen,
             beneficio=beneficio,
             detalle=detalle,
-            valor=valor
+            valor=valor,
+            requiresJourney=requiresJourney
         )
     
     async def deactivate_beneficio(self, beneficio_id: UUID) -> dict:

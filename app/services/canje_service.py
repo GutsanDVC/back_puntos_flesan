@@ -9,6 +9,7 @@ from app.core.exceptions import NotFoundError, ValidationError, ConflictError
 from app.repositories.canje_repository import CanjeRepository
 from app.repositories.user_repository import UserRepository
 from app.repositories.beneficio_repository import BeneficioRepository
+from app.services.email_service import EmailService
 
 
 class CanjeService:
@@ -52,6 +53,7 @@ class CanjeService:
         puntos_utilizar: int,
         fecha_canje: datetime,
         fecha_uso: datetime,
+        jornada: Optional[str],
         observaciones: Optional[str] = None
     ) -> dict:
         """
@@ -81,6 +83,15 @@ class CanjeService:
         
         if not beneficio.get("is_active", False):
             raise ValidationError(f"El beneficio {beneficio_id} está inactivo y no puede ser canjeado")
+
+        # 2.1 Validar/normalizar jornada según configuración del beneficio
+        requires_journey = bool(beneficio.get("requiresJourney", False))
+        if requires_journey:
+            if jornada is None or not str(jornada).strip():
+                raise ValidationError("Este beneficio requiere especificar una jornada")
+            jornada_final = str(jornada).strip()
+        else:
+            jornada_final = str(jornada).strip() if jornada else "COMPLETA"
         
         # 3. Validar que el usuario tiene puntos suficientes
         puntos_disponibles = user.get("puntos", 0)
@@ -123,6 +134,7 @@ class CanjeService:
             puntos_canjeados=puntos_utilizar,
             fecha_canje=fecha_canje_norm,
             fecha_uso=fecha_uso_norm,
+            jornada=jornada_final,
             observaciones=observaciones
         )
         
@@ -137,6 +149,43 @@ class CanjeService:
         canje["puntos_restantes"] = nuevos_puntos
         
         return canje
+
+    async def send_canje_notification(
+        self,
+        user_id: int,
+        beneficio_id: UUID,
+        puntos_utilizados: int,
+        fecha_canje: datetime,
+        fecha_uso: datetime,
+        jornada: Optional[str] = None,
+        comentarios: Optional[str] = None,
+        puntos_restantes: Optional[int] = None
+    ) -> None:
+        """Construye el contexto y envía el correo de notificación de canje."""
+        # Obtener usuario por user_id (ID externo)
+        user = await self.user_repository.get_by_user_id(user_id)
+        if not user:
+            return
+        # Obtener beneficio
+        beneficio = await self.beneficio_repository.get_by_id(beneficio_id)
+        if not beneficio:
+            return
+        context = {
+            "nombre_colaborador": user.get("first_name", ""),
+            "nombre_beneficio": beneficio.get("beneficio", ""),
+            "imagen_beneficio": beneficio.get("imagen", ""),
+            "detalle_beneficio": beneficio.get("detalle", ""),
+            "puntos_utilizados": puntos_utilizados,
+            "puntos_restantes": puntos_restantes if puntos_restantes is not None else user.get("puntos", 0),
+            "fecha_canje": fecha_canje,
+            "fecha_uso": fecha_uso,
+            "jornada": jornada,
+            "comentarios": comentarios,
+        }
+        EmailService.send_benefit_notification(
+            recipient_email=user.get("email", ""),
+            context=context
+        )
     
     async def get_canje_by_id(self, canje_id: UUID) -> dict:
         """Obtiene un canje por ID"""

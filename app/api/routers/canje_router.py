@@ -19,8 +19,8 @@ from app.core.security import CurrentUser
 from app.repositories.canje_repository import CanjeRepository
 from app.repositories.user_repository import UserRepository
 from app.repositories.beneficio_repository import BeneficioRepository
+from app.services.user_service import UserService
 from app.services.canje_service import CanjeService
-
 
 router = APIRouter(prefix="/canjes", tags=["canjes"])
 
@@ -31,6 +31,12 @@ def get_canje_service(db: AsyncSession = Depends(get_db)) -> CanjeService:
     user_repository = UserRepository(db)
     beneficio_repository = BeneficioRepository(db)
     return CanjeService(canje_repository, user_repository, beneficio_repository)
+
+
+def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:
+    """Dependencia para obtener el servicio de usuarios"""
+    user_repository = UserRepository(db)
+    return UserService(user_repository)
 
 
 @router.post(
@@ -57,7 +63,8 @@ def get_canje_service(db: AsyncSession = Depends(get_db)) -> CanjeService:
 async def crear_canje(
     request: CanjeCreateRequest,
     # current_user: CurrentUser = Depends(get_current_user),
-    service: CanjeService = Depends(get_canje_service)
+    service: CanjeService = Depends(get_canje_service),
+    user_service: UserService = Depends(get_user_service)
 ) -> CanjeResponse:
     """
     Crea un nuevo canje de puntos por beneficio
@@ -66,15 +73,27 @@ async def crear_canje(
     automático de puntos al usuario
     """
     try:
-        print(request)
         canje = await service.crear_canje(
             user_id=request.user_id,
             beneficio_id=request.beneficio_id,
             puntos_utilizar=request.puntos_utilizar,
             fecha_canje=request.fecha_canje,
             fecha_uso=request.fecha_uso,
+            jornada=request.jornada,
             observaciones=request.observaciones
         )
+        # Notificación al usuario (delegada al servicio)
+        await service.send_canje_notification(
+            user_id=request.user_id,
+            beneficio_id=request.beneficio_id,
+            puntos_utilizados=request.puntos_utilizar,
+            fecha_canje=request.fecha_canje,
+            fecha_uso=request.fecha_uso,
+            jornada=canje.get("jornada"),
+            comentarios=request.observaciones,
+            puntos_restantes=canje.get("puntos_restantes")
+        )
+        
         return CanjeResponse(**canje)
         
     except NotFoundError as e:

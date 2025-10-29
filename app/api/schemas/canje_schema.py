@@ -14,6 +14,7 @@ class CanjeCreateRequest(BaseModel):
     puntos_utilizar: int = Field(..., gt=0, description="Cantidad de puntos a utilizar")
     fecha_canje: datetime = Field(..., description="Fecha en que se realiza el canje")
     fecha_uso: datetime = Field(..., description="Fecha programada para usar el beneficio")
+    jornada: Optional[str] = Field(None, min_length=1, max_length=50, description="Jornada del beneficio (requerida solo si el beneficio lo exige)")
     observaciones: Optional[str] = Field(None, max_length=500, description="Observaciones adicionales")
     
     @field_validator('fecha_uso')
@@ -32,6 +33,7 @@ class CanjeCreateRequest(BaseModel):
                 "puntos_utilizar": 100,
                 "fecha_canje": "2025-01-24T10:00:00",
                 "fecha_uso": "2025-02-01T10:00:00",
+                "jornada": "COMPLETA",
                 "observaciones": "Canje para día libre"
             }
         }
@@ -45,6 +47,7 @@ class CanjeResponse(BaseModel):
     puntos_canjeados: int
     fecha_canje: datetime
     fecha_uso: datetime
+    jornada: Optional[str] = None
     estado: str
     observaciones: Optional[str] = None
     puntos_restantes: int  # Puntos que le quedan al usuario después del canje

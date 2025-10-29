@@ -41,6 +41,7 @@ async def create_beneficio(
     beneficio: str = Form(..., description="Nombre del beneficio"),
     detalle: str = Form(..., description="Descripción detallada"),
     valor: int = Form(..., ge=0, description="Valor en puntos"),
+    requiresJourney: bool = Form(..., description="Indica si requiere jornada específica"),
     
     service: BeneficioService = Depends(get_beneficio_service)
 ) -> BeneficioResponse:
@@ -54,7 +55,8 @@ async def create_beneficio(
             beneficio=beneficio,
             detalle=detalle,
             valor=valor,
-            imagen=image_url
+            imagen=image_url,
+            requiresJourney=requiresJourney
         )
         
         return BeneficioResponse(**result)
@@ -116,6 +118,7 @@ async def update_beneficio(
     beneficio: Optional[str] = Form(None),
     detalle: Optional[str] = Form(None),
     valor: Optional[int] = Form(None, ge=0),
+    requiresJourney: Optional[bool] = Form(None),
     current_user: CurrentUser = Depends(require_manage_benefits),
     service: BeneficioService = Depends(get_beneficio_service)
 ) -> BeneficioResponse:
@@ -126,7 +129,8 @@ async def update_beneficio(
             imagen=imagen,
             beneficio=beneficio,
             detalle=detalle,
-            valor=valor
+            valor=valor,
+            requiresJourney=requiresJourney
         )
         
         return BeneficioResponse(**result)

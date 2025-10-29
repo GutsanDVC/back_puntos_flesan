@@ -192,8 +192,8 @@ async def update_beneficio_imagen(
         raise
 
 
-@router.delete(
-    "/{beneficio_id}",
+@router.put(
+    "/{beneficio_id}/desactivar",
     response_model=BeneficioResponse,
     summary="Desactivar beneficio",
     description="Desactiva un beneficio (soft delete). Requiere permisos de administrador."

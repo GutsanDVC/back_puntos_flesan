@@ -18,8 +18,6 @@ class BeneficioRepository:
         self,
         beneficio: str,
         detalle: str,
-        regla1: str,
-        regla2: str,
         valor: int,
         imagen: str
     ) -> dict:
@@ -29,10 +27,10 @@ class BeneficioRepository:
         
         query = text("""
             INSERT INTO puntos_flesan.beneficios 
-            (id, imagen, beneficio, detalle, regla1, regla2, valor, is_active, created_at, updated_at)
+            (id, imagen, beneficio, detalle, valor, is_active, created_at, updated_at)
             VALUES 
-            (:id, :imagen, :beneficio, :detalle, :regla1, :regla2, :valor, :is_active, :created_at, :updated_at)
-            RETURNING id, imagen, beneficio, detalle, regla1, regla2, valor, is_active, created_at, updated_at
+            (:id, :imagen, :beneficio, :detalle, :valor, :is_active, :created_at, :updated_at)
+            RETURNING id, imagen, beneficio, detalle, valor, is_active, created_at, updated_at
         """)
         
         result = await self.session.execute(
@@ -42,8 +40,6 @@ class BeneficioRepository:
                 "imagen": imagen,
                 "beneficio": beneficio,
                 "detalle": detalle,
-                "regla1": regla1,
-                "regla2": regla2,
                 "valor": valor,
                 "is_active": True,
                 "created_at": created_at,
@@ -57,7 +53,7 @@ class BeneficioRepository:
     async def get_by_id(self, beneficio_id: UUID) -> Optional[dict]:
         """Obtiene un beneficio por ID usando SQL RAW"""
         query = text("""
-            SELECT id, imagen, beneficio, detalle, regla1, regla2, valor, is_active, created_at, updated_at
+            SELECT id, imagen, beneficio, detalle, valor, is_active, created_at, updated_at
             FROM puntos_flesan.beneficios
             WHERE id = :beneficio_id
         """)
@@ -70,7 +66,7 @@ class BeneficioRepository:
     async def get_by_name(self, name: str) -> Optional[dict]:
         """Obtiene un beneficio por nombre usando SQL RAW"""
         query = text("""
-            SELECT id, imagen, beneficio, detalle, regla1, regla2, valor, is_active, created_at, updated_at
+            SELECT id, imagen, beneficio, detalle, valor, is_active, created_at, updated_at
             FROM puntos_flesan.beneficios
             WHERE LOWER(beneficio) = LOWER(:name)
         """)
@@ -86,8 +82,6 @@ class BeneficioRepository:
         imagen: Optional[str] = None,
         beneficio: Optional[str] = None,
         detalle: Optional[str] = None,
-        regla1: Optional[str] = None,
-        regla2: Optional[str] = None,
         valor: Optional[int] = None,
         is_active: Optional[bool] = None
     ) -> dict:
@@ -101,8 +95,6 @@ class BeneficioRepository:
         updated_imagen = imagen if imagen is not None else current["imagen"]
         updated_beneficio = beneficio if beneficio is not None else current["beneficio"]
         updated_detalle = detalle if detalle is not None else current["detalle"]
-        updated_regla1 = regla1 if regla1 is not None else current["regla1"]
-        updated_regla2 = regla2 if regla2 is not None else current["regla2"]
         updated_valor = valor if valor is not None else current["valor"]
         updated_is_active = is_active if is_active is not None else current["is_active"]
         
@@ -111,13 +103,11 @@ class BeneficioRepository:
             SET imagen = :imagen,
                 beneficio = :beneficio,
                 detalle = :detalle,
-                regla1 = :regla1,
-                regla2 = :regla2,
                 valor = :valor,
                 is_active = :is_active,
                 updated_at = :updated_at
             WHERE id = :beneficio_id
-            RETURNING id, imagen, beneficio, detalle, regla1, regla2, valor, is_active, created_at, updated_at
+            RETURNING id, imagen, beneficio, detalle, valor, is_active, created_at, updated_at
         """)
         
         result = await self.session.execute(
@@ -127,8 +117,6 @@ class BeneficioRepository:
                 "imagen": updated_imagen,
                 "beneficio": updated_beneficio,
                 "detalle": updated_detalle,
-                "regla1": updated_regla1,
-                "regla2": updated_regla2,
                 "valor": updated_valor,
                 "is_active": updated_is_active,
                 "updated_at": datetime.utcnow()
@@ -176,7 +164,7 @@ class BeneficioRepository:
         where_clause = "WHERE " + " AND ".join(where_conditions) if where_conditions else ""
         
         query = text(f"""
-            SELECT id, imagen, beneficio, detalle, regla1, regla2, valor, is_active, created_at, updated_at
+            SELECT id, imagen, beneficio, detalle, valor, is_active, created_at, updated_at
             FROM puntos_flesan.beneficios
             {where_clause}
             ORDER BY created_at DESC
@@ -217,13 +205,11 @@ class BeneficioRepository:
     ) -> List[dict]:
         """Busca beneficios por texto usando SQL RAW"""
         query = text("""
-            SELECT id, imagen, beneficio, detalle, regla1, regla2, valor, is_active, created_at, updated_at
+            SELECT id, imagen, beneficio, detalle, valor, is_active, created_at, updated_at
             FROM puntos_flesan.beneficios
             WHERE 
                 LOWER(beneficio) LIKE LOWER(:search_term)
                 OR LOWER(detalle) LIKE LOWER(:search_term)
-                OR LOWER(regla1) LIKE LOWER(:search_term)
-                OR LOWER(regla2) LIKE LOWER(:search_term)
             ORDER BY created_at DESC
             OFFSET :skip LIMIT :limit
         """)
@@ -245,8 +231,6 @@ class BeneficioRepository:
             WHERE 
                 LOWER(beneficio) LIKE LOWER(:search_term)
                 OR LOWER(detalle) LIKE LOWER(:search_term)
-                OR LOWER(regla1) LIKE LOWER(:search_term)
-                OR LOWER(regla2) LIKE LOWER(:search_term)
         """)
         
         search_pattern = f"%{search_term}%"
@@ -283,8 +267,6 @@ class BeneficioRepository:
             "imagen": row.imagen,
             "beneficio": row.beneficio,
             "detalle": row.detalle,
-            "regla1": row.regla1,
-            "regla2": row.regla2,
             "valor": row.valor,
             "is_active": row.is_active,
             "created_at": row.created_at,

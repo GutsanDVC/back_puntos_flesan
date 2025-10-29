@@ -40,8 +40,6 @@ async def create_beneficio(
     imagen: UploadFile = File(..., description="Archivo de imagen del beneficio"),
     beneficio: str = Form(..., description="Nombre del beneficio"),
     detalle: str = Form(..., description="Descripción detallada"),
-    regla1: str = Form(..., description="Primera regla"),
-    regla2: str = Form(..., description="Segunda regla"),
     valor: int = Form(..., ge=0, description="Valor en puntos"),
     
     service: BeneficioService = Depends(get_beneficio_service)
@@ -55,8 +53,6 @@ async def create_beneficio(
         result = await service.create_beneficio(
             beneficio=beneficio,
             detalle=detalle,
-            regla1=regla1,
-            regla2=regla2,
             valor=valor,
             imagen=image_url
         )
@@ -119,8 +115,6 @@ async def update_beneficio(
     imagen: Optional[str] = Form(None),
     beneficio: Optional[str] = Form(None),
     detalle: Optional[str] = Form(None),
-    regla1: Optional[str] = Form(None),
-    regla2: Optional[str] = Form(None),
     valor: Optional[int] = Form(None, ge=0),
     current_user: CurrentUser = Depends(require_manage_benefits),
     service: BeneficioService = Depends(get_beneficio_service)
@@ -132,8 +126,6 @@ async def update_beneficio(
             imagen=imagen,
             beneficio=beneficio,
             detalle=detalle,
-            regla1=regla1,
-            regla2=regla2,
             valor=valor
         )
         

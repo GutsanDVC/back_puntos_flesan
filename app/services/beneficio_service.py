@@ -19,8 +19,6 @@ class BeneficioService:
         self,
         beneficio: str,
         detalle: str,
-        regla1: str,
-        regla2: str,
         valor: int,
         imagen: str
     ) -> dict:
@@ -35,8 +33,6 @@ class BeneficioService:
         # Validar campos
         validate_not_empty_string(beneficio, "beneficio")
         validate_not_empty_string(detalle, "detalle")
-        validate_not_empty_string(regla1, "regla1")
-        validate_not_empty_string(regla2, "regla2")
         validate_not_empty_string(imagen, "imagen")
         
         if valor < 0:
@@ -51,8 +47,6 @@ class BeneficioService:
         return await self.repository.create(
             beneficio=beneficio.strip(),
             detalle=detalle.strip(),
-            regla1=regla1.strip(),
-            regla2=regla2.strip(),
             valor=valor,
             imagen=imagen
         )
@@ -70,8 +64,6 @@ class BeneficioService:
         imagen: Optional[str] = None,
         beneficio: Optional[str] = None,
         detalle: Optional[str] = None,
-        regla1: Optional[str] = None,
-        regla2: Optional[str] = None,
         valor: Optional[int] = None
     ) -> dict:
         """
@@ -101,14 +93,6 @@ class BeneficioService:
             validate_not_empty_string(detalle, "detalle")
             detalle = detalle.strip()
         
-        if regla1 is not None:
-            validate_not_empty_string(regla1, "regla1")
-            regla1 = regla1.strip()
-        
-        if regla2 is not None:
-            validate_not_empty_string(regla2, "regla2")
-            regla2 = regla2.strip()
-        
         if imagen is not None:
             validate_not_empty_string(imagen, "imagen")
         
@@ -121,8 +105,6 @@ class BeneficioService:
             imagen=imagen,
             beneficio=beneficio,
             detalle=detalle,
-            regla1=regla1,
-            regla2=regla2,
             valor=valor
         )
     
